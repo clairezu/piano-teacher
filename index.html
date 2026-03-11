@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a0a2e">
+<title>🎹 Piano Teacher</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0f0820;--bg2:#1a0f35;--card:#221545;--card2:#2d1d5a;
+  --gold:#f0c060;--gold2:#e8a030;--pink:#ff6b9d;--cyan:#60d8f0;
+  --green:#50e080;--red:#ff5060;--white:#f0eaf8;--muted:#8070a8;
+  --border:rgba(240,192,96,0.2);
+  --font:'Outfit',sans-serif;--fontcn:'Noto Serif SC',serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--font);overflow-x:hidden;}
+body{padding-bottom:env(safe-area-inset-bottom,0px);}
+
+/* ── BACKGROUND ── */
+.bg-stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.bg-stars::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 20%, rgba(96,60,180,0.3) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 80%, rgba(60,96,180,0.2) 0%, transparent 60%),
+             radial-gradient(ellipse at 50% 50%, rgba(240,192,96,0.05) 0%, transparent 70%);
+}
+
+/* ── LAYOUT ── */
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 14px 80px;}
+
+/* ── HEADER ── */
+.header{text-align:center;padding:calc(env(safe-area-inset-top,0px) + 18px) 0 16px;}
+.header-title{font-family:var(--fontcn);font-size:1.5rem;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:2px;}
+.header-sub{font-size:0.75rem;color:var(--muted);font-weight:300;}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(15,8,32,0.95);
+  border-top:1px solid var(--border);
+  display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  backdrop-filter:blur(12px);
+}
+.nav-btn{
+  flex:1;border:none;background:none;padding:10px 4px 11px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--muted);font-family:var(--font);cursor:pointer;transition:color .15s;
+}
+.nav-btn.active{color:var(--gold);}
+.nav-icon{font-size:1.25rem;}
+.nav-label{font-size:0.6rem;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;}
+
+/* ── PANELS ── */
+.panel{display:none;padding-top:10px;}
+.panel.active{display:block;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--border);}
+.card-title{font-size:0.9rem;font-weight:600;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+
+/* ── MIC STATUS ── */
+.mic-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border-radius:14px;padding:12px 16px;
+  margin-bottom:12px;border:1px solid var(--border);
+}
+.mic-dot{width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s;}
+.mic-dot.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;};}
+.mic-text{font-size:0.8rem;color:var(--muted);flex:1;}
+.mic-btn{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a0f35;
+  border:none;border-radius:20px;padding:8px 16px;
+  font-size:0.78rem;font-weight:700;font-family:var(--font);
+  cursor:pointer;transition:opacity .15s;white-space:nowrap;
+}
+.mic-btn:active{opacity:0.8;}
+
+/* ── NOTE DISPLAY ── */
+.note-display{
+  background:linear-gradient(135deg,var(--card),var(--card2));
+  border-radius:20px;padding:20px 16px;margin-bottom:12px;
+  border:1px solid var(--border);text-align:center;
+  position:relative;overflow:hidden;
+}
+.note-display::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, rgba(240,192,96,0.06) 0%, transparent 70%);
+}
+.note-label{font-size:0.7rem;color:var(--muted);font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.note-big{font-family:var(--fontcn);font-size:3.5rem;font-weight:700;line-height:1;color:var(--gold);transition:all .15s;min-height:60px;display:flex;align-items:center;justify-content:center;}
+.note-big.correct{color:var(--green);text-shadow:0 0 20px var(--green);}
+.note-big.wrong{color:var(--red);text-shadow:0 0 20px var(--red);}
+.note-hz{font-size:0.75rem;color:var(--muted);margin-top:4px;}
+.note-cn{font-size:0.85rem;color:var(--cyan);margin-top:2px;font-family:var(--fontcn);}
+
+/* ── TUNER BAR ── */
+.tuner-wrap{margin:10px 0;}
+.tuner-track{height:6px;background:rgba(255,255,255,0.1);border-radius:6px;position:relative;overflow:visible;}
+.tuner-center{position:absolute;left:50%;top:-3px;width:2px;height:12px;background:var(--gold);border-radius:2px;transform:translateX(-50%);}
+.tuner-needle{
+  position:absolute;top:-4px;width:14px;height:14px;
+  border-radius:50%;background:var(--cyan);
+  transform:translateX(-50%);transition:left .1s ease;
+  box-shadow:0 0 8px var(--cyan);
+}
+.tuner-labels{display:flex;justify-content:space-between;margin-top:4px;}
+.tuner-labels span{font-size:0.6rem;color:var(--muted);}
+
+/* ── SONG LIST ── */
+.song-grid{display:flex;flex-direction:column;gap:8px;}
+.song-card{
+  background:var(--card);border-radius:14px;padding:14px 16px;
+  border:1px solid var(--border);cursor:pointer;
+  display:flex;align-items:center;gap:12px;
+  transition:background .15s,border-color .15s;
+  -webkit-user-select:none;user-select:none;
+}
+.song-card:active{background:var(--card2);border-color:var(--gold);}
+.song-card.active{background:var(--card2);border-color:var(--gold);}
+.song-emoji{font-size:1.6rem;flex-shrink:0;}
+.song-info{flex:1;}
+.song-cn{font-family:var(--fontcn);font-size:1rem;font-weight:700;color:var(--white);margin-bottom:2px;}
+.song-en{font-size:0.72rem;color:var(--muted);}
+.song-diff{font-size:0.65rem;font-weight:600;padding:2px 8px;border-radius:10px;}
+.song-diff.easy{background:rgba(80,224,128,0.2);color:var(--green);}
+.song-diff.medium{background:rgba(240,192,96,0.2);color:var(--gold);}
+.song-diff.hard{background:rgba(255,80,96,0.2);color:var(--red);}
+.song-play-btn{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#1a0f35;border:none;border-radius:20px;
+  padding:7px 14px;font-size:0.75rem;font-weight:700;
+  font-family:var(--font);cursor:pointer;flex-shrink:0;
+  transition:opacity .15s;
+}
+.song-play-btn:active{opacity:0.75;}
+
+/* ── SHEET MUSIC / PLAY VIEW ── */
+.sheet-header{
+  background:var(--card);border-radius:16px;padding:14px 16px;
+  margin-bottom:10px;border:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.back-btn{
+  background:rgba(240,192,96,0.15);border:1px solid var(--border);
+  color:var(--gold);border-radius:10px;padding:7px 12px;
+  font-size:0.8rem;font-weight:600;font-family:var(--font);
+  cursor:pointer;flex-shrink:0;
+}
+.sheet-title-cn{font-family:var(--fontcn);font-size:1rem;font-weight:700;color:var(--white);}
+.sheet-title-en{font-size:0.7rem;color:var(--muted);}
+
+/* ── NOTES SCROLL ── */
+.notes-scroll{
+  display:flex;flex-direction:column;gap:6px;
+  margin-bottom:12px;
+}
+.note-row{
+  display:flex;align-items:center;gap:8px;
+  background:var(--card);border-radius:12px;padding:10px 14px;
+  border:2px solid transparent;transition:all .2s;
+}
+.note-row.current{
+  border-color:var(--gold);background:var(--card2);
+  box-shadow:0 0 16px rgba(240,192,96,0.2);
+}
+.note-row.done{border-color:rgba(80,224,128,0.3);background:rgba(80,224,128,0.05);}
+.note-row.wrong-row{border-color:rgba(255,80,96,0.5);animation:wrongShake .3s ease;}
+@keyframes wrongShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);};}
+.note-row-num{font-size:0.65rem;color:var(--muted);width:16px;flex-shrink:0;text-align:center;}
+.note-row-key{
+  font-size:1.1rem;font-weight:700;color:var(--gold);
+  width:42px;text-align:center;flex-shrink:0;
+  font-family:var(--font);
+}
+.note-row.done .note-row-key{color:var(--green);}
+.note-row.current .note-row-key{color:var(--gold);text-shadow:0 0 10px var(--gold);}
+.note-row-bar{flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;}
+.note-row-fill{height:100%;border-radius:4px;background:var(--gold);width:0%;transition:width .1s;}
+.note-row.done .note-row-fill{width:100%;background:var(--green);}
+.note-row.current .note-row-fill{background:var(--gold);}
+.note-row-cn{font-family:var(--fontcn);font-size:0.75rem;color:var(--cyan);width:28px;text-align:right;flex-shrink:0;}
+.note-row-lyric{font-family:var(--fontcn);font-size:0.75rem;color:var(--muted);flex:0 0 auto;max-width:48px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ── PROGRESS ── */
+.progress-bar-wrap{background:rgba(255,255,255,0.08);border-radius:8px;height:6px;overflow:hidden;margin-bottom:12px;}
+.progress-bar-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--gold),var(--pink));transition:width .3s ease;}
+
+/* ── RESULT OVERLAY ── */
+.result-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(10,4,20,0.85);z-index:200;
+  align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(6px);
+}
+.result-overlay.show{display:flex;}
+.result-sheet{
+  background:var(--card2);width:100%;max-width:480px;
+  border-radius:28px 28px 0 0;
+  padding:28px 24px calc(32px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--border);
+  text-align:center;
+  animation:sheetUp .3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.result-emoji{font-size:3rem;margin-bottom:10px;}
+.result-title{font-family:var(--fontcn);font-size:1.4rem;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.result-sub{font-size:0.85rem;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+.result-btns{display:flex;gap:10px;}
+.result-btns button{flex:1;padding:13px;border-radius:13px;border:none;font-family:var(--font);font-size:0.9rem;font-weight:600;cursor:pointer;}
+.btn-retry{background:rgba(240,192,96,0.15);color:var(--gold);border:1px solid var(--border)!important;}
+.btn-next{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a0f35;}
+
+/* ── FREE PLAY PIANO ── */
+.piano-wrap{overflow-x:auto;padding:10px 0;margin-bottom:12px;-webkit-overflow-scrolling:touch;}
+.piano{display:flex;gap:3px;min-width:max-content;padding:0 4px;}
+.key{
+  border-radius:0 0 8px 8px;cursor:pointer;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:6px;font-size:0.55rem;font-weight:600;
+  transition:filter .1s;user-select:none;-webkit-user-select:none;
+  position:relative;flex-shrink:0;
+}
+.key.white{
+  width:38px;height:110px;
+  background:linear-gradient(180deg,#f5f0e8 0%,#ffffff 100%);
+  border:1px solid #ccc;color:#888;
+}
+.key.black{
+  width:26px;height:72px;
+  background:linear-gradient(180deg,#2a2a2a 0%,#111 100%);
+  border:1px solid #000;color:#555;
+  margin:0 -13px;z-index:2;
+}
+.key.white:active,.key.white.lit{filter:brightness(0.75);background:linear-gradient(180deg,var(--gold) 0%,#e8a030 100%);}
+.key.black:active,.key.black.lit{filter:brightness(1.8);background:linear-gradient(180deg,var(--gold) 0%,#c07820 100%);}
+.key.correct-flash{background:linear-gradient(180deg,var(--green) 0%,#30c060 100%)!important;filter:brightness(1)!important;}
+.key.wrong-flash{background:linear-gradient(180deg,var(--red) 0%,#c03040 100%)!important;filter:brightness(1)!important;}
+
+/* ── LISTENING INDICATOR ── */
+.listening-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(80,224,128,0.15);border:1px solid rgba(80,224,128,0.3);
+  border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:600;color:var(--green);
+  margin-bottom:10px;
+}
+.listen-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1s infinite;}
+
+/* ── HINT ── */
+.hint-box{
+  background:rgba(96,216,240,0.1);border:1px solid rgba(96,216,240,0.2);
+  border-radius:12px;padding:10px 14px;margin-bottom:10px;
+  font-size:0.78rem;color:var(--cyan);line-height:1.5;
+}
+.hint-box strong{color:var(--gold);}
+
+/* ── STATS ── */
+.stats-row{display:flex;gap:8px;margin-bottom:10px;}
+.stat-box{flex:1;background:var(--card);border-radius:12px;padding:10px;border:1px solid var(--border);text-align:center;}
+.stat-val{font-size:1.3rem;font-weight:700;color:var(--gold);}
+.stat-lbl{font-size:0.62rem;color:var(--muted);margin-top:1px;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--card2);color:var(--white);
+  padding:9px 18px;border-radius:20px;border:1px solid var(--border);
+  font-size:0.8rem;opacity:0;pointer-events:none;
+  transition:all .22s ease;z-index:500;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── SENSITIVITY SLIDER ── */
+.slider-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.slider-row label{font-size:0.73rem;color:var(--muted);white-space:nowrap;}
+input[type=range]{flex:1;accent-color:var(--gold);height:4px;}
+.slider-val{font-size:0.73rem;color:var(--gold);width:28px;text-align:right;}
+</style>
+</head>
+<body>
+<div class="bg-stars"></div>
+
+<div class="app">
+  <div class="header">
+    <div class="header-title">🎹 Piano Teacher</div>
+    <div class="header-sub">Play your piano — I'll listen and guide you · 13 songs</div>
+  </div>
+
+  <!-- ══ LISTEN PANEL ══ -->
+  <div class="panel active" id="panel-listen">
+
+    <!-- Mic control -->
+    <div class="mic-bar">
+      <div class="mic-dot" id="micDot"></div>
+      <span class="mic-text" id="micText">Tap Start to let me listen to your piano</span>
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤 Start</button>
+    </div>
+
+    <!-- Note display -->
+    <div class="note-display">
+      <div class="note-label">Note I hear</div>
+      <div class="note-big" id="noteDisplay">—</div>
+      <div class="note-hz" id="noteHz"></div>
+      <div class="note-cn" id="noteCn"></div>
+      <div class="tuner-wrap">
+        <div class="tuner-track">
+          <div class="tuner-center"></div>
+          <div class="tuner-needle" id="tunerNeedle" style="left:50%"></div>
+        </div>
+        <div class="tuner-labels"><span>♭ Flat</span><span>In tune</span><span>Sharp ♯</span></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val" id="statNotes">0</div><div class="stat-lbl">Notes detected</div></div>
+      <div class="stat-box"><div class="stat-val" id="statAccuracy">—</div><div class="stat-lbl">In tune %</div></div>
+      <div class="stat-box"><div class="stat-val" id="statSession">0s</div><div class="stat-lbl">Session</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Settings</div>
+      <div class="slider-row">
+        <label>Sensitivity</label>
+        <input type="range" id="sensitivitySlider" min="1" max="10" value="5" oninput="updateSensitivity(this.value)">
+        <span class="slider-val" id="sensitivityVal">5</span>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;line-height:1.5;">
+        If notes aren't detected, increase sensitivity. If you get false notes, decrease it.
+      </div>
+    </div>
+
+    <div class="hint-box">
+      💡 <strong>How to use:</strong> Tap <strong>Start</strong>, allow microphone access, then play a note on your piano. The note name will appear above. Works best in a quiet room with your phone near the piano!
+    </div>
+  </div>
+
+  <!-- ══ SONGS PANEL ══ -->
+  <div class="panel" id="panel-songs">
+    <div class="hint-box" id="songHint">
+      🎵 Choose a song below. I'll show you each note to play — play it on your piano and I'll listen! Start mic first on the Listen tab.
+    </div>
+    <div class="song-grid" id="songGrid"></div>
+  </div>
+
+  <!-- ══ PLAY PANEL ══ -->
+  <div class="panel" id="panel-play">
+    <div class="sheet-header">
+      <button class="back-btn" onclick="backToSongs()">← Back</button>
+      <div>
+        <div class="sheet-title-cn" id="playSongCn"></div>
+        <div class="sheet-title-en" id="playSongEn"></div>
+      </div>
+    </div>
+
+    <div id="listenBadgeWrap"></div>
+
+    <!-- Progress -->
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="playProgress" style="width:0%"></div></div>
+
+    <!-- Current note big display -->
+    <div class="note-display" style="margin-bottom:10px;">
+      <div class="note-label">Play this note now 👇</div>
+      <div class="note-big" id="targetNoteDisplay">—</div>
+      <div class="note-cn" id="targetNoteCn"></div>
+      <div id="detectedWrap" style="margin-top:6px;font-size:0.75rem;color:var(--muted);">Waiting for your piano…</div>
+    </div>
+
+    <!-- Notes list -->
+    <div class="notes-scroll" id="notesList"></div>
+  </div>
+
+  <!-- ══ FREE PLAY PANEL ══ -->
+  <div class="panel" id="panel-free">
+    <div class="hint-box">
+      🎹 Tap the keys below to hear the notes. Use this to find where notes are on your piano!
+    </div>
+    <div class="piano-wrap"><div class="piano" id="pianoCont"></div></div>
+    <div class="card">
+      <div class="card-title">🗺️ Note to Piano Key Guide</div>
+      <div id="noteGuide" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-listen" onclick="switchPanel('listen',this)">
+    <span class="nav-icon">🎤</span><span class="nav-label">Listen</span>
+  </button>
+  <button class="nav-btn" id="nav-songs" onclick="switchPanel('songs',this)">
+    <span class="nav-icon">🎵</span><span class="nav-label">Songs</span>
+  </button>
+  <button class="nav-btn" id="nav-free" onclick="switchPanel('free',this)">
+    <span class="nav-icon">🎹</span><span class="nav-label">Piano</span>
+  </button>
+</nav>
+
+<!-- RESULT OVERLAY -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-sheet">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-title" id="resultTitle">太棒了！</div>
+    <div class="result-sub" id="resultSub">You completed the song!</div>
+    <div class="result-btns">
+      <button class="btn-retry" onclick="retrySong()">↺ Try Again</button>
+      <button class="btn-next" onclick="backToSongs()">Songs List</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  SONGS DATABASE
+// ══════════════════════════════════════════
+const SONGS = [
+  {
+    id:'moon', cn:'月亮代表我的心', en:'The Moon Represents My Heart', emoji:'🌙', diff:'easy',
+    notes:[
+      {note:'E4',cn:'咪',lyric:'你'},   {note:'E4',cn:'咪',lyric:'问'},   {note:'C4',cn:'哆',lyric:'我'},
+      {note:'D4',cn:'来',lyric:'爱'},   {note:'E4',cn:'咪',lyric:'你'},   {note:'G4',cn:'索',lyric:'有'},
+      {note:'E4',cn:'咪',lyric:'多'},   {note:'D4',cn:'来',lyric:'深'},   {note:'C4',cn:'哆',lyric:'月'},
+      {note:'D4',cn:'来',lyric:'亮'},   {note:'E4',cn:'咪',lyric:'代'},   {note:'D4',cn:'来',lyric:'表'},
+      {note:'C4',cn:'哆',lyric:'我'},   {note:'E4',cn:'咪',lyric:'的'},   {note:'G4',cn:'索',lyric:'心'},
+      {note:'A4',cn:'拉',lyric:'你'},   {note:'G4',cn:'索',lyric:'问'},   {note:'E4',cn:'咪',lyric:'我'},
+      {note:'G4',cn:'索',lyric:'爱'},   {note:'A4',cn:'拉',lyric:'你'},   {note:'C5',cn:'哆',lyric:'有'},
+      {note:'A4',cn:'拉',lyric:'多'},   {note:'G4',cn:'索',lyric:'深'},
+    ]
+  },
+  {
+    id:'jasmine', cn:'茉莉花', en:'Jasmine Flower', emoji:'🌸', diff:'easy',
+    notes:[
+      {note:'G4',cn:'索',lyric:'好'},   {note:'G4',cn:'索',lyric:'一'},   {note:'A4',cn:'拉',lyric:'朵'},
+      {note:'G4',cn:'索',lyric:'美'},   {note:'E4',cn:'咪',lyric:'丽'},   {note:'G4',cn:'索',lyric:'的'},
+      {note:'A4',cn:'拉',lyric:'茉'},   {note:'C5',cn:'哆',lyric:'莉'},   {note:'A4',cn:'拉',lyric:'花'},
+      {note:'G4',cn:'索',lyric:'好'},   {note:'E4',cn:'咪',lyric:'一'},   {note:'G4',cn:'索',lyric:'朵'},
+      {note:'A4',cn:'拉',lyric:'美'},   {note:'G4',cn:'索',lyric:'丽'},   {note:'E4',cn:'咪',lyric:'的'},
+      {note:'D4',cn:'来',lyric:'茉'},   {note:'E4',cn:'咪',lyric:'莉'},   {note:'D4',cn:'来',lyric:'花'},
+      {note:'C4',cn:'哆',lyric:'芬'},   {note:'D4',cn:'来',lyric:'芳'},   {note:'E4',cn:'咪',lyric:'美'},
+      {note:'G4',cn:'索',lyric:'丽'},   {note:'E4',cn:'咪',lyric:'满'},   {note:'D4',cn:'来',lyric:'枝'},
+      {note:'C4',cn:'哆',lyric:'桠'},
+    ]
+  },
+  {
+    id:'star', cn:'小星星', en:'Twinkle Twinkle Little Star', emoji:'⭐', diff:'easy',
+    notes:[
+      {note:'C4',cn:'哆',lyric:'一'},  {note:'C4',cn:'哆',lyric:'闪'},  {note:'G4',cn:'索',lyric:'一'},
+      {note:'G4',cn:'索',lyric:'闪'},  {note:'A4',cn:'拉',lyric:'亮'},  {note:'A4',cn:'拉',lyric:'晶'},
+      {note:'G4',cn:'索',lyric:'晶'},  {note:'F4',cn:'发',lyric:'满'},  {note:'F4',cn:'发',lyric:'天'},
+      {note:'E4',cn:'咪',lyric:'都'},  {note:'E4',cn:'咪',lyric:'是'},  {note:'D4',cn:'来',lyric:'小'},
+      {note:'D4',cn:'来',lyric:'星'},  {note:'C4',cn:'哆',lyric:'星'},
+    ]
+  },
+  {
+    id:'tiger', cn:'两只老虎', en:'Two Tigers', emoji:'🐯', diff:'easy',
+    notes:[
+      {note:'C4',cn:'哆',lyric:'两'},  {note:'D4',cn:'来',lyric:'只'},  {note:'E4',cn:'咪',lyric:'老'},
+      {note:'C4',cn:'哆',lyric:'虎'},  {note:'C4',cn:'哆',lyric:'两'},  {note:'D4',cn:'来',lyric:'只'},
+      {note:'E4',cn:'咪',lyric:'老'},  {note:'C4',cn:'哆',lyric:'虎'},  {note:'E4',cn:'咪',lyric:'跑'},
+      {note:'F4',cn:'发',lyric:'得'},  {note:'G4',cn:'索',lyric:'快'},  {note:'E4',cn:'咪',lyric:'跑'},
+      {note:'F4',cn:'发',lyric:'得'},  {note:'G4',cn:'索',lyric:'快'},  {note:'G4',cn:'索',lyric:'一'},
+      {note:'A4',cn:'拉',lyric:'只'},  {note:'G4',cn:'索',lyric:'没'},  {note:'F4',cn:'发',lyric:'有'},
+      {note:'E4',cn:'咪',lyric:'眼'},  {note:'C4',cn:'哆',lyric:'睛'},
+    ]
+  },
+  {
+    id:'ode', cn:'欢乐颂', en:'Ode to Joy', emoji:'🎊', diff:'medium',
+    notes:[
+      {note:'E4',cn:'咪',lyric:'欢'},  {note:'E4',cn:'咪',lyric:'乐'},  {note:'F4',cn:'发',lyric:'女'},
+      {note:'G4',cn:'索',lyric:'神'},  {note:'G4',cn:'索',lyric:'圣'},  {note:'F4',cn:'发',lyric:'洁'},
+      {note:'E4',cn:'咪',lyric:'美'},  {note:'D4',cn:'来',lyric:'丽'},  {note:'C4',cn:'哆',lyric:'灿'},
+      {note:'C4',cn:'哆',lyric:'烂'},  {note:'D4',cn:'来',lyric:'光'},  {note:'E4',cn:'咪',lyric:'辉'},
+      {note:'E4',cn:'咪',lyric:'璀'},  {note:'D4',cn:'来',lyric:'璨'},  {note:'D4',cn:'来',lyric:'荣'},
+      {note:'E4',cn:'咪',lyric:'欢'},  {note:'E4',cn:'咪',lyric:'乐'},  {note:'F4',cn:'发',lyric:'女'},
+      {note:'G4',cn:'索',lyric:'神'},  {note:'G4',cn:'索',lyric:'圣'},  {note:'F4',cn:'发',lyric:'洁'},
+      {note:'E4',cn:'咪',lyric:'美'},  {note:'D4',cn:'来',lyric:'丽'},  {note:'C4',cn:'哆',lyric:'照'},
+    ]
+  },
+  {
+    id:'birthday', cn:'生日快乐', en:'Happy Birthday', emoji:'🎂', diff:'easy',
+    notes:[
+      {note:'G4',cn:'索',lyric:'祝'},  {note:'G4',cn:'索',lyric:'你'},  {note:'A4',cn:'拉',lyric:'生'},
+      {note:'G4',cn:'索',lyric:'日'},  {note:'C5',cn:'哆',lyric:'快'},  {note:'B4',cn:'西',lyric:'乐'},
+      {note:'G4',cn:'索',lyric:'祝'},  {note:'G4',cn:'索',lyric:'你'},  {note:'A4',cn:'拉',lyric:'生'},
+      {note:'G4',cn:'索',lyric:'日'},  {note:'D5',cn:'来',lyric:'快'},  {note:'C5',cn:'哆',lyric:'乐'},
+      {note:'G4',cn:'索',lyric:'祝'},  {note:'G4',cn:'索',lyric:'你'},  {note:'G5',cn:'索',lyric:'生'},
+      {note:'E5',cn:'咪',lyric:'日'},  {note:'C5',cn:'哆',lyric:'快'},  {note:'B4',cn:'西',lyric:'乐'},
+      {note:'A4',cn:'拉',lyric:'祝'},  {note:'F5',cn:'发',lyric:'你'},  {note:'E5',cn:'咪',lyric:'生'},
+      {note:'C5',cn:'哆',lyric:'日'},  {note:'D5',cn:'来',lyric:'快'},  {note:'C5',cn:'哆',lyric:'乐'},
+    ]
+  },
+  {
+    id:'river', cn:'小河淌水', en:'Clear Water Flows', emoji:'🏞️', diff:'medium',
+    notes:[
+      {note:'E4',cn:'咪',lyric:'哎'},  {note:'G4',cn:'索',lyric:'那'},  {note:'A4',cn:'拉',lyric:'月'},
+      {note:'G4',cn:'索',lyric:'亮'},  {note:'E4',cn:'咪',lyric:'光'},  {note:'D4',cn:'来',lyric:'哟'},
+      {note:'E4',cn:'咪',lyric:'照'},  {note:'G4',cn:'索',lyric:'在'},  {note:'A4',cn:'拉',lyric:'高'},
+      {note:'C5',cn:'哆',lyric:'山'},  {note:'A4',cn:'拉',lyric:'上'},  {note:'G4',cn:'索',lyric:'也'},
+      {note:'E4',cn:'咪',lyric:'照'},  {note:'G4',cn:'索',lyric:'在'},  {note:'A4',cn:'拉',lyric:'小'},
+      {note:'G4',cn:'索',lyric:'河'},  {note:'E4',cn:'咪',lyric:'淌'},  {note:'D4',cn:'来',lyric:'水'},
+    ]
+  },
+
+  {
+    id:'yueliangzhaoshanchuan', cn:'月亮照山川', en:'Moonlight Over Mountains', emoji:'🏔️', diff:'medium',
+    notes:[
+      {note:'G4',cn:'索',lyric:'月'},  {note:'A4',cn:'拉',lyric:'光'},  {note:'C5',cn:'哆',lyric:'它'},
+      {note:'B4',cn:'西',lyric:'落'},  {note:'A4',cn:'拉',lyric:'屋'},  {note:'G4',cn:'索',lyric:'檐'},
+      {note:'E4',cn:'咪',lyric:'落'},  {note:'G4',cn:'索',lyric:'在'},  {note:'A4',cn:'拉',lyric:'远'},
+      {note:'C5',cn:'哆',lyric:'方'},  {note:'B4',cn:'西',lyric:'的'},  {note:'A4',cn:'拉',lyric:'山'},
+      {note:'G4',cn:'索',lyric:'川'},  {note:'E4',cn:'咪',lyric:'群'},  {note:'G4',cn:'索',lyric:'山'},
+      {note:'A4',cn:'拉',lyric:'下'},  {note:'C5',cn:'哆',lyric:'的'},  {note:'B4',cn:'西',lyric:'少'},
+      {note:'A4',cn:'拉',lyric:'年'},  {note:'G4',cn:'索',lyric:'绕'},  {note:'E4',cn:'咪',lyric:'着'},
+      {note:'D4',cn:'来',lyric:'山'},  {note:'E4',cn:'咪',lyric:'路'},  {note:'G4',cn:'索',lyric:'十'},
+      {note:'A4',cn:'拉',lyric:'八'},  {note:'G4',cn:'索',lyric:'弯'},  {note:'E4',cn:'咪',lyric:'他'},
+      {note:'D4',cn:'来',lyric:'的'},  {note:'C4',cn:'哆',lyric:'身'},  {note:'D4',cn:'来',lyric:'影'},
+    ]
+  },
+  {
+    id:'buran', cn:'不染', en:'Unstained (Ashes of Love OST)', emoji:'🌿', diff:'medium',
+    notes:[
+      {note:'E4',cn:'咪',lyric:'不'},  {note:'D4',cn:'来',lyric:'愿'},  {note:'C4',cn:'哆',lyric:'染'},
+      {note:'D4',cn:'来',lyric:'是'},  {note:'E4',cn:'咪',lyric:'与'},  {note:'G4',cn:'索',lyric:'非'},
+      {note:'A4',cn:'拉',lyric:'怎'},  {note:'G4',cn:'索',lyric:'料'},  {note:'E4',cn:'咪',lyric:'事'},
+      {note:'G4',cn:'索',lyric:'与'},  {note:'A4',cn:'拉',lyric:'愿'},  {note:'G4',cn:'索',lyric:'违'},
+      {note:'E4',cn:'咪',lyric:'心'},  {note:'D4',cn:'来',lyric:'中'},  {note:'C4',cn:'哆',lyric:'的'},
+      {note:'D4',cn:'来',lyric:'花'},  {note:'E4',cn:'咪',lyric:'枯'},  {note:'D4',cn:'来',lyric:'萎'},
+      {note:'C4',cn:'哆',lyric:'时'},  {note:'E4',cn:'咪',lyric:'光'},  {note:'G4',cn:'索',lyric:'它'},
+      {note:'A4',cn:'拉',lyric:'去'},  {note:'G4',cn:'索',lyric:'不'},  {note:'E4',cn:'咪',lyric:'回'},
+      {note:'G4',cn:'索',lyric:'但'},  {note:'A4',cn:'拉',lyric:'愿'},  {note:'C5',cn:'哆',lyric:'洗'},
+      {note:'B4',cn:'西',lyric:'去'},  {note:'A4',cn:'拉',lyric:'浮'},  {note:'G4',cn:'索',lyric:'华'},
+    ]
+  },
+  {
+    id:'dahuajiao', cn:'大花轿', en:'The Wedding Sedan Chair', emoji:'🏮', diff:'medium',
+    notes:[
+      {note:'G4',cn:'索',lyric:'抬'},  {note:'G4',cn:'索',lyric:'起'},  {note:'A4',cn:'拉',lyric:'大'},
+      {note:'G4',cn:'索',lyric:'花'},  {note:'E4',cn:'咪',lyric:'轿'},  {note:'G4',cn:'索',lyric:'咿'},
+      {note:'A4',cn:'拉',lyric:'呀'},  {note:'C5',cn:'哆',lyric:'嗬'},  {note:'A4',cn:'拉',lyric:'哟'},
+      {note:'G4',cn:'索',lyric:'送'},  {note:'E4',cn:'咪',lyric:'进'},  {note:'G4',cn:'索',lyric:'洞'},
+      {note:'A4',cn:'拉',lyric:'房'},  {note:'G4',cn:'索',lyric:'里'},  {note:'E4',cn:'咪',lyric:'哟'},
+      {note:'D4',cn:'来',lyric:'新'},  {note:'E4',cn:'咪',lyric:'娘'},  {note:'G4',cn:'索',lyric:'坐'},
+      {note:'A4',cn:'拉',lyric:'轿'},  {note:'G4',cn:'索',lyric:'中'},  {note:'E4',cn:'咪',lyric:'含'},
+      {note:'D4',cn:'来',lyric:'羞'},  {note:'C4',cn:'哆',lyric:'带'},  {note:'D4',cn:'来',lyric:'笑'},
+      {note:'E4',cn:'咪',lyric:'多'},  {note:'G4',cn:'索',lyric:'喜'},  {note:'A4',cn:'拉',lyric:'庆'},
+      {note:'G4',cn:'索',lyric:'哟'},  {note:'E4',cn:'咪',lyric:'热'},  {note:'C4',cn:'哆',lyric:'闹'},
+    ]
+  },
+
+  {
+    id:'sunshine', cn:'You Are My Sunshine', en:'You Are My Sunshine', emoji:'☀️', diff:'easy',
+    notes:[
+      {note:'C4',cn:'哆',lyric:'You'},  {note:'C4',cn:'哆',lyric:'are'},  {note:'C4',cn:'哆',lyric:'my'},
+      {note:'E4',cn:'咪',lyric:'sun'},  {note:'G4',cn:'索',lyric:'shine'},{note:'G4',cn:'索',lyric:'my'},
+      {note:'E4',cn:'咪',lyric:'on'},   {note:'G4',cn:'索',lyric:'ly'},   {note:'A4',cn:'拉',lyric:'sun'},
+      {note:'G4',cn:'索',lyric:'shine'},{note:'F4',cn:'发',lyric:'you'},  {note:'F4',cn:'发',lyric:'make'},
+      {note:'F4',cn:'发',lyric:'me'},   {note:'A4',cn:'拉',lyric:'hap'},  {note:'G4',cn:'索',lyric:'py'},
+      {note:'E4',cn:'咪',lyric:'when'},  {note:'D4',cn:'来',lyric:'skies'},{note:'C4',cn:'哆',lyric:'are'},
+      {note:'D4',cn:'来',lyric:'grey'}, {note:'E4',cn:'咪',lyric:'you\'ll'},{note:'G4',cn:'索',lyric:'nev'},
+      {note:'A4',cn:'拉',lyric:'er'},   {note:'C5',cn:'哆',lyric:'know'},  {note:'A4',cn:'拉',lyric:'dear'},
+      {note:'G4',cn:'索',lyric:'how'},  {note:'F4',cn:'发',lyric:'much'},  {note:'E4',cn:'咪',lyric:'I'},
+      {note:'D4',cn:'来',lyric:'love'}, {note:'C4',cn:'哆',lyric:'you'},
+    ]
+  },
+  {
+    id:'fuelise', cn:'致爱丽丝', en:'Für Elise (Beethoven)', emoji:'🌹', diff:'medium',
+    notes:[
+      {note:'E4',cn:'咪',lyric:'致'},  {note:'D4',cn:'来',lyric:'爱'},  {note:'E4',cn:'咪',lyric:'丽'},
+      {note:'D4',cn:'来',lyric:'丝'},  {note:'E4',cn:'咪',lyric:'永'},  {note:'B3',cn:'西',lyric:'远'},
+      {note:'D4',cn:'来',lyric:'美'},  {note:'C4',cn:'哆',lyric:'丽'},  {note:'A3',cn:'拉',lyric:'如'},
+      {note:'C4',cn:'哆',lyric:'诗'},  {note:'E4',cn:'咪',lyric:'如'},  {note:'A4',cn:'拉',lyric:'画'},
+      {note:'B4',cn:'西',lyric:'旋'},  {note:'E4',cn:'咪',lyric:'律'},  {note:'G4',cn:'索',lyric:'轻'},
+      {note:'B4',cn:'西',lyric:'柔'},  {note:'C5',cn:'哆',lyric:'飘'},  {note:'E4',cn:'咪',lyric:'荡'},
+      {note:'D4',cn:'来',lyric:'在'},  {note:'E4',cn:'咪',lyric:'空'},  {note:'D4',cn:'来',lyric:'气'},
+      {note:'E4',cn:'咪',lyric:'中'},  {note:'B3',cn:'西',lyric:'贝'},  {note:'D4',cn:'来',lyric:'多'},
+      {note:'C4',cn:'哆',lyric:'芬'},  {note:'A3',cn:'拉',lyric:'为'},  {note:'E4',cn:'咪',lyric:'她'},
+      {note:'D4',cn:'来',lyric:'谱'},  {note:'E4',cn:'咪',lyric:'写'},  {note:'D4',cn:'来',lyric:'曲'},
+    ]
+  },
+  {
+    id:'gongxi', cn:'恭喜恭喜', en:'Congratulations', emoji:'🧧', diff:'medium',
+    notes:[
+      {note:'E4',cn:'咪',lyric:'每'},  {note:'G4',cn:'索',lyric:'条'},  {note:'A4',cn:'拉',lyric:'大'},
+      {note:'A4',cn:'拉',lyric:'街'},  {note:'G4',cn:'索',lyric:'小'},  {note:'E4',cn:'咪',lyric:'巷'},
+      {note:'D4',cn:'来',lyric:'都'},  {note:'E4',cn:'咪',lyric:'在'},  {note:'G4',cn:'索',lyric:'讲'},
+      {note:'G4',cn:'索',lyric:'恭'},  {note:'A4',cn:'拉',lyric:'喜'},  {note:'G4',cn:'索',lyric:'恭'},
+      {note:'E4',cn:'咪',lyric:'喜'},  {note:'C4',cn:'哆',lyric:'恭'},  {note:'D4',cn:'来',lyric:'喜'},
+      {note:'E4',cn:'咪',lyric:'你'},
+    ]
+  },
+];
+
+// ══════════════════════════════════════════
+//  NOTE FREQUENCIES
+// ══════════════════════════════════════════
+const NOTE_FREQS = {
+  'C3':130.81,'D3':146.83,'E3':164.81,'F3':174.61,'G3':196.00,'A3':220.00,'B3':246.94,
+  'C4':261.63,'D4':293.66,'E4':329.63,'F4':349.23,'G4':392.00,'A4':440.00,'B4':493.88,
+  'C5':523.25,'D5':587.33,'E5':659.25,'F5':698.46,'G5':783.99,'A5':880.00,'B5':987.77,
+};
+const NOTE_NAMES_CN = {
+  'C':'哆','D':'来','E':'咪','F':'发','G':'索','A':'拉','B':'西'
+};
+const ALL_NOTES = Object.keys(NOTE_FREQS);
+
+function freqToNote(freq){
+  if(!freq || freq < 60) return null;
+  let best=null, bestDist=Infinity;
+  for(const [name,f] of Object.entries(NOTE_FREQS)){
+    const d = Math.abs(Math.log2(freq/f));
+    if(d < bestDist){ bestDist=d; best=name; }
+  }
+  if(bestDist > 0.12) return null; // too far from any note
+  return {name:best, freq:NOTE_FREQS[best], detected:freq, cents: Math.round(1200*Math.log2(freq/NOTE_FREQS[best]))};
+}
+
+// ══════════════════════════════════════════
+//  AUDIO / PITCH DETECTION
+// ══════════════════════════════════════════
+let audioCtx=null, analyser=null, micStream=null, rafId=null;
+let micOn=false, sensitivity=5;
+let noteCount=0, inTuneCount=0, sessionStart=null, sessionTimer=null;
+
+function updateSensitivity(v){
+  sensitivity = parseInt(v);
+  document.getElementById('sensitivityVal').textContent=v;
+}
+
+async function toggleMic(){
+  if(micOn){ stopMic(); return; }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 4096;
+    analyser.smoothingTimeConstant = 0.8;
+    const src = audioCtx.createMediaStreamSource(stream);
+    src.connect(analyser);
+    micStream = stream;
+    micOn = true;
+    document.getElementById('micDot').classList.add('on');
+    document.getElementById('micText').textContent = 'Listening to your piano…';
+    document.getElementById('micBtn').textContent = '⏹ Stop';
+    sessionStart = Date.now();
+    sessionTimer = setInterval(updateSessionTime, 1000);
+    detectPitch();
+    showToast('🎤 Microphone active! Play a note');
+  } catch(e){
+    showToast('⚠️ Could not access microphone. Please allow access.');
+  }
+}
+
+function stopMic(){
+  micOn=false;
+  if(rafId) cancelAnimationFrame(rafId);
+  if(micStream) micStream.getTracks().forEach(t=>t.stop());
+  if(audioCtx) audioCtx.close();
+  if(sessionTimer) clearInterval(sessionTimer);
+  document.getElementById('micDot').classList.remove('on');
+  document.getElementById('micText').textContent = 'Tap Start to listen to your piano';
+  document.getElementById('micBtn').textContent = '🎤 Start';
+  document.getElementById('noteDisplay').textContent='—';
+  document.getElementById('noteHz').textContent='';
+  document.getElementById('noteCn').textContent='';
+  document.getElementById('tunerNeedle').style.left='50%';
+}
+
+function updateSessionTime(){
+  if(!sessionStart) return;
+  const s = Math.round((Date.now()-sessionStart)/1000);
+  document.getElementById('statSession').textContent = s < 60 ? s+'s' : Math.floor(s/60)+'m'+(s%60)+'s';
+}
+
+let lastNote = null, lastNoteTime = 0, noteHoldCount = 0;
+
+function detectPitch(){
+  if(!micOn){ return; }
+  rafId = requestAnimationFrame(detectPitch);
+
+  const buf = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buf);
+
+  // Check volume — only process if loud enough
+  let rms = 0;
+  for(let i=0;i<buf.length;i++) rms += buf[i]*buf[i];
+  rms = Math.sqrt(rms/buf.length);
+
+  const threshold = 0.003 + (10 - sensitivity) * 0.004; // sensitivity affects threshold
+  if(rms < threshold){
+    // silence — gradually clear display
+    return;
+  }
+
+  const freq = autoCorrelate(buf, audioCtx.sampleRate);
+  if(!freq) return;
+
+  const noteResult = freqToNote(freq);
+  if(!noteResult) return;
+
+  const now = Date.now();
+  // Debounce — only register if held for a bit
+  if(noteResult.name === lastNote){
+    noteHoldCount++;
+    if(noteHoldCount === 3){ // confirmed note
+      onNoteDetected(noteResult);
+    }
+  } else {
+    lastNote = noteResult.name;
+    noteHoldCount = 0;
+    lastNoteTime = now;
+    // Update tuner needle immediately
+    const pct = Math.max(0, Math.min(100, 50 + noteResult.cents/2));
+    document.getElementById('tunerNeedle').style.left = pct+'%';
+  }
+}
+
+function onNoteDetected(r){
+  noteCount++;
+  document.getElementById('statNotes').textContent = noteCount;
+  const inTune = Math.abs(r.cents) < 20;
+  if(inTune) inTuneCount++;
+  document.getElementById('statAccuracy').textContent = Math.round(inTuneCount/noteCount*100)+'%';
+
+  const noteLetter = r.name.replace(/[0-9]/g,'');
+  const noteOctave = r.name.match(/[0-9]/)?.[0]||'';
+  const cn = NOTE_NAMES_CN[noteLetter]||'';
+
+  const el = document.getElementById('noteDisplay');
+  el.textContent = r.name;
+  el.className = 'note-big ' + (inTune?'correct':'');
+  document.getElementById('noteHz').textContent = Math.round(r.detected)+' Hz';
+  document.getElementById('noteCn').textContent = cn ? `唱名: ${cn}` : '';
+  const pct = Math.max(0, Math.min(100, 50 + r.cents/2));
+  document.getElementById('tunerNeedle').style.left = pct+'%';
+
+  // If playing a song, check against target
+  if(currentSong && currentNoteIdx < currentSong.notes.length){
+    checkSongNote(r.name);
+  }
+}
+
+// ── Autocorrelation pitch detection ──
+function autoCorrelate(buf, sampleRate){
+  const SIZE = buf.length;
+  const MAX_SAMPLES = Math.floor(SIZE/2);
+  let best_offset = -1, best_corr = 0, rms = 0;
+  let found = false;
+
+  for(let i=0;i<SIZE;i++) rms += buf[i]*buf[i];
+  rms = Math.sqrt(rms/SIZE);
+  if(rms < 0.001) return -1;
+
+  let last_corr = 1;
+  for(let offset = 0; offset < MAX_SAMPLES; offset++){
+    let corr = 0;
+    for(let i=0; i<MAX_SAMPLES; i++) corr += Math.abs((buf[i])-(buf[i+offset]));
+    corr = 1 - (corr/MAX_SAMPLES);
+    if(corr > 0.9 && corr > last_corr){
+      found = true;
+      if(corr > best_corr){ best_corr=corr; best_offset=offset; }
+    }
+    last_corr = corr;
+  }
+  if(!found) return -1;
+  // interpolate
+  let s = 0;
+  for(let i=-1; i<=1; i++){
+    const v = best_offset+i;
+    if(v>=0 && v<MAX_SAMPLES){
+      let c=0;
+      for(let j=0;j<MAX_SAMPLES;j++) c+=Math.abs(buf[j]-buf[j+v]);
+      c=1-(c/MAX_SAMPLES);
+      s+=(i*c);
+      s/=(c||1);
+    }
+  }
+  return sampleRate/(best_offset+s);
+}
+
+// ══════════════════════════════════════════
+//  SONG PLAY MODE
+// ══════════════════════════════════════════
+let currentSong = null, currentNoteIdx = 0;
+let correctCount = 0, wrongCount = 0;
+
+function startSong(song){
+  currentSong = song;
+  currentNoteIdx = 0;
+  correctCount = 0; wrongCount = 0;
+  switchPanel('play', document.getElementById('nav-songs'));
+  renderPlayView();
+  if(!micOn){ showToast('💡 Go to Listen tab first to turn on mic!'); }
+}
+
+function renderPlayView(){
+  document.getElementById('playSongCn').textContent = currentSong.cn;
+  document.getElementById('playSongEn').textContent = currentSong.en;
+
+  // badge
+  const bw = document.getElementById('listenBadgeWrap');
+  bw.innerHTML = micOn
+    ? '<div class="listening-badge"><div class="listen-dot"></div> Listening to your piano</div>'
+    : '<div style="font-size:0.75rem;color:#ff8060;margin-bottom:8px;">⚠️ Mic is off — go to Listen tab to start it</div>';
+
+  // target note
+  updateTargetDisplay();
+
+  // notes list
+  const list = document.getElementById('notesList');
+  list.innerHTML = currentSong.notes.map((n,i)=>`
+    <div class="note-row ${i<currentNoteIdx?'done':i===currentNoteIdx?'current':''}" id="nrow-${i}">
+      <span class="note-row-num">${i+1}</span>
+      <span class="note-row-key">${n.note}</span>
+      <div class="note-row-bar"><div class="note-row-fill" id="nfill-${i}"></div></div>
+      <span class="note-row-cn">${n.cn}</span>
+      <span class="note-row-lyric">${n.lyric}</span>
+    </div>`).join('');
+
+  updateProgress();
+  scrollToCurrentNote();
+}
+
+function updateTargetDisplay(){
+  if(!currentSong) return;
+  const n = currentSong.notes[currentNoteIdx];
+  if(!n){ return; }
+  document.getElementById('targetNoteDisplay').textContent = n.note;
+  document.getElementById('targetNoteCn').textContent = `唱名: ${n.cn}  「${n.lyric}」`;
+  document.getElementById('detectedWrap').textContent = micOn ? 'Waiting for your piano…' : '⚠️ Mic off';
+  document.getElementById('targetNoteDisplay').className = 'note-big';
+}
+
+let lastCheckedNote = null, lastCheckTime = 0;
+
+function checkSongNote(detectedNote){
+  if(!currentSong) return;
+  const now = Date.now();
+  // prevent double-trigger
+  if(detectedNote === lastCheckedNote && now - lastCheckTime < 600) return;
+
+  const target = currentSong.notes[currentNoteIdx];
+  if(!target) return;
+
+  lastCheckedNote = detectedNote;
+  lastCheckTime = now;
+
+  // Compare note letter + octave
+  const detectedBase = detectedNote.replace(/[0-9]/g,'');
+  const targetBase = target.note.replace(/[0-9]/g,'');
+  const detectedOct = parseInt(detectedNote.match(/[0-9]/)?.[0]||4);
+  const targetOct = parseInt(target.note.match(/[0-9]/)?.[0]||4);
+
+  // Allow same letter, within 1 octave tolerance
+  const match = detectedBase === targetBase && Math.abs(detectedOct - targetOct) <= 1;
+
+  const row = document.getElementById('nrow-'+currentNoteIdx);
+  const fill = document.getElementById('nfill-'+currentNoteIdx);
+  const td = document.getElementById('targetNoteDisplay');
+  const dw = document.getElementById('detectedWrap');
+
+  if(match){
+    correctCount++;
+    td.className = 'note-big correct';
+    dw.textContent = '✅ Correct! '+detectedNote;
+    if(row){ row.classList.add('done'); row.classList.remove('current'); }
+    if(fill){ fill.style.width='100%'; }
+    flashKey(target.note, true);
+
+    currentNoteIdx++;
+    if(currentNoteIdx >= currentSong.notes.length){
+      setTimeout(showResult, 600);
+    } else {
+      setTimeout(()=>{
+        updateTargetDisplay();
+        const nextRow = document.getElementById('nrow-'+currentNoteIdx);
+        if(nextRow){ nextRow.classList.add('current'); }
+        updateProgress();
+        scrollToCurrentNote();
+      }, 400);
+    }
+  } else {
+    wrongCount++;
+    td.className = 'note-big wrong';
+    dw.textContent = '❌ I heard: '+detectedNote+' — need: '+target.note;
+    if(row){ row.classList.add('wrong-row'); setTimeout(()=>row.classList.remove('wrong-row'),400); }
+    flashKey(target.note, false);
+  }
+}
+
+function updateProgress(){
+  const pct = currentSong ? (currentNoteIdx/currentSong.notes.length*100) : 0;
+  document.getElementById('playProgress').style.width = pct+'%';
+}
+
+function scrollToCurrentNote(){
+  const row = document.getElementById('nrow-'+currentNoteIdx);
+  if(row) setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'center'}),100);
+}
+
+function showResult(){
+  const total = currentSong.notes.length;
+  const score = Math.round(correctCount/(correctCount+wrongCount)*100);
+  const overlay = document.getElementById('resultOverlay');
+  document.getElementById('resultEmoji').textContent = score>=80?'🎉':score>=50?'👏':'💪';
+  document.getElementById('resultTitle').textContent = score>=80?'太棒了！非常好！':score>=50?'做得很好！':'继续练习！';
+  document.getElementById('resultSub').textContent =
+    `You played ${total} notes · ${correctCount} correct · ${wrongCount} wrong\nScore: ${score}%`;
+  overlay.classList.add('show');
+}
+
+function retrySong(){ document.getElementById('resultOverlay').classList.remove('show'); startSong(currentSong); }
+function backToSongs(){
+  document.getElementById('resultOverlay').classList.remove('show');
+  currentSong=null; currentNoteIdx=0;
+  switchPanel('songs', document.getElementById('nav-songs'));
+}
+
+// ══════════════════════════════════════════
+//  FREE PLAY PIANO
+// ══════════════════════════════════════════
+const PIANO_KEYS = [
+  {note:'B3',type:'white'},
+  {note:'C4',type:'white'},{note:'C#4',type:'black'},
+  {note:'D4',type:'white'},{note:'D#4',type:'black'},
+  {note:'E4',type:'white'},
+  {note:'F4',type:'white'},{note:'F#4',type:'black'},
+  {note:'G4',type:'white'},{note:'G#4',type:'black'},
+  {note:'A4',type:'white'},{note:'A#4',type:'black'},
+  {note:'B4',type:'white'},
+  {note:'C5',type:'white'},{note:'C#5',type:'black'},
+  {note:'D5',type:'white'},{note:'D#5',type:'black'},
+  {note:'E5',type:'white'},
+  {note:'F5',type:'white'},{note:'F#5',type:'black'},
+  {note:'G5',type:'white'},
+];
+
+function buildPiano(){
+  const cont = document.getElementById('pianoCont');
+  cont.innerHTML = '';
+  PIANO_KEYS.forEach(k=>{
+    const el = document.createElement('div');
+    el.className = 'key '+k.type;
+    el.id = 'key-'+k.note.replace('#','s');
+    const label = k.note.replace('#','♯');
+    el.innerHTML = `<span>${label}</span>`;
+    el.addEventListener('touchstart', e=>{ e.preventDefault(); playNote(k.note, el); });
+    el.addEventListener('mousedown', e=>{ playNote(k.note, el); });
+    cont.appendChild(el);
+  });
+
+  // Guide
+  const guide = document.getElementById('noteGuide');
+  const mainNotes = ['C4','D4','E4','F4','G4','A4','B4','C5'];
+  guide.innerHTML = mainNotes.map(n=>{
+    const letter = n.replace(/[0-9]/g,'');
+    const cn = NOTE_NAMES_CN[letter]||'';
+    return `<div style="background:var(--card2);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:8px;border:1px solid var(--border);">
+      <span style="font-size:0.85rem;font-weight:700;color:var(--gold);">${n}</span>
+      <span style="font-family:var(--fontcn);font-size:0.8rem;color:var(--cyan);">${cn}</span>
+    </div>`;
+  }).join('');
+}
+
+let pianoAudioCtx = null;
+function playNote(note, el){
+  const freq = NOTE_FREQS[note];
+  if(!freq) return;
+  // Flash key
+  el.classList.add('lit');
+  setTimeout(()=>el.classList.remove('lit'),300);
+  // Synthesise note
+  if(!pianoAudioCtx) pianoAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const ctx = pianoAudioCtx;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  gain.gain.setValueAtTime(0.5, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+1.2);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime+1.2);
+}
+
+function flashKey(note, correct){
+  const id = 'key-'+note.replace('#','s');
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.add(correct?'correct-flash':'wrong-flash');
+  setTimeout(()=>el.classList.remove('correct-flash','wrong-flash'),400);
+}
+
+// ══════════════════════════════════════════
+//  SONGS LIST RENDER
+// ══════════════════════════════════════════
+function renderSongs(){
+  const grid = document.getElementById('songGrid');
+  grid.innerHTML = SONGS.map(s=>`
+    <div class="song-card" id="scard-${s.id}">
+      <span class="song-emoji">${s.emoji}</span>
+      <div class="song-info">
+        <div class="song-cn">${s.cn}</div>
+        <div class="song-en">${s.en}</div>
+      </div>
+      <span class="song-diff ${s.diff}">${s.diff==='easy'?'初级':s.diff==='medium'?'中级':'高级'}</span>
+      <button class="song-play-btn" onclick="startSong(SONGS.find(x=>x.id==='${s.id}'))">开始 ▶</button>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════
+function switchPanel(name, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='songs') renderSongs();
+  if(name==='free') buildPiano();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderSongs();
+buildPiano();
+</script>
+</body>
+</html>
